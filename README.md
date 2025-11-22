@@ -25,7 +25,15 @@ A live multiplayer word-association game built with React and NestJS. Test your 
     npm install
     ```
 
-3.  **Install Client Dependencies**:
+3.  **Configure Server Environment**:
+
+    ```bash
+    cd server
+    cp .env.example .env
+    # Edit .env file if you need to change the port or other settings
+    ```
+
+4.  **Install Client Dependencies**:
     ```bash
     cd ../client
     npm install
@@ -33,7 +41,7 @@ A live multiplayer word-association game built with React and NestJS. Test your 
 
 ### Running the Application
 
-1.  **Start the Server** (Runs on port 3000):
+1.  **Start the Server** (Default port: 3000):
 
     ```bash
     cd server

@@ -20,26 +20,57 @@ This is the backend server built with NestJS and Socket.io that handles:
    npm install
    ```
 
-2. **Run in development mode**:
+2. **Create environment file**:
+
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` to configure your settings:
+   ```env
+   # Server Configuration
+   PORT=3000
+   
+   # Application
+   NODE_ENV=development
+   ```
+
+3. **Run in development mode**:
 
    ```bash
    npm run start:dev
    ```
 
-3. **Build for production**:
+4. **Build for production**:
 
    ```bash
    npm run build
    ```
 
-4. **Run production build**:
+5. **Run production build**:
    ```bash
    npm run start:prod
    ```
 
-The server will run on `http://localhost:3000` by default.
+The server will run on the port specified in your `.env` file (default: `http://localhost:3000`).
 
 ## Configuration
+
+### Environment Variables
+
+Server settings can be configured in `.env` file:
+
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
+
+Example `.env` file:
+```env
+PORT=3000
+NODE_ENV=development
+```
+
+### Game Settings
 
 Game settings can be customized in `src/game/config/game.config.ts`:
 
