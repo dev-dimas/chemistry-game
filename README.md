@@ -39,6 +39,14 @@ A live multiplayer word-association game built with React and NestJS. Test your 
     npm install
     ```
 
+5.  **Configure Client Environment**:
+
+    ```bash
+    cd client
+    cp .env.example .env
+    # Edit .env file if you need to change the backend API URL
+    ```
+
 ### Running the Application
 
 1.  **Start the Server** (Default port: 3000):

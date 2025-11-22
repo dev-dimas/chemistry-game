@@ -93,7 +93,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
     persistentPlayerId.current = pid;
 
-    const newSocket = io("http://localhost:3000");
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    console.log("Connecting to backend:", apiUrl);
+    
+    const newSocket = io(apiUrl);
     setSocket(newSocket);
 
     newSocket.on("connect", () => {

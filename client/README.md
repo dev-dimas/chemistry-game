@@ -68,6 +68,34 @@ client/
 └── package.json
 ```
 
+## Configuration
+
+### Environment Variables
+
+Client settings can be configured in `.env` file:
+
+- `VITE_API_URL`: Backend API URL (default: http://localhost:3000)
+- `VITE_APP_NAME`: Application name (default: Chemistry Game)
+
+Example `.env` file:
+```env
+VITE_API_URL=http://localhost:3000
+VITE_APP_NAME=Chemistry Game
+```
+
+**Note**: In Vite, environment variables must be prefixed with `VITE_` to be exposed to the client code.
+
+### Adding New Environment Variables
+
+1. Add the variable to `.env` and `.env.example` with `VITE_` prefix
+2. Add TypeScript type in `src/env.d.ts`:
+   ```typescript
+   interface ImportMetaEnv {
+     readonly VITE_YOUR_VAR: string;
+   }
+   ```
+3. Access in code: `import.meta.env.VITE_YOUR_VAR`
+
 ## Features
 
 - **Bilingual Support**: Full English and Indonesian translations
@@ -184,13 +212,22 @@ npm run preview
 npm run lint
 ```
 
-## Environment Variables
+## Connecting to Different Backend
 
-The app connects to the server at `http://localhost:3000` by default. To change this, update the socket connection in `src/context/GameContext.tsx`:
+To connect to a different backend server (e.g., production), update the `VITE_API_URL` in your `.env` file:
 
-```typescript
-const newSocket = io("http://your-server-url:port");
+```env
+# For production
+VITE_API_URL=https://your-production-api.com
+
+# For local development
+VITE_API_URL=http://localhost:3000
+
+# For different port
+VITE_API_URL=http://localhost:8080
 ```
+
+The app will automatically connect to the specified backend URL.
 
 ## License
 
