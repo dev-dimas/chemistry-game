@@ -10,7 +10,7 @@ export const GameConfig = {
    * Number of words/rounds per game
    * Default: 10
    */
-  WORDS_PER_GAME: 2,
+  WORDS_PER_GAME: 10,
 
   /**
    * Minimum number of players required to start a game

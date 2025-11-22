@@ -1,98 +1,138 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Chemistry Game - Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS backend server for the Multiplayer Chemistry Game.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+This is the backend server built with NestJS and Socket.io that handles:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Real-time WebSocket communication
+- Game state management
+- Room creation and management
+- Player authentication and reconnection
+- Game logic and scoring
 
-## Project setup
+## Setup
 
-```bash
-$ npm install
+1. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+2. **Run in development mode**:
+
+   ```bash
+   npm run start:dev
+   ```
+
+3. **Build for production**:
+
+   ```bash
+   npm run build
+   ```
+
+4. **Run production build**:
+   ```bash
+   npm run start:prod
+   ```
+
+The server will run on `http://localhost:3000` by default.
+
+## Configuration
+
+Game settings can be customized in `src/game/config/game.config.ts`:
+
+```typescript
+export const GameConfig = {
+  WORDS_PER_GAME: 10, // Number of rounds per game
+  MIN_PLAYERS: 2, // Minimum players to start
+  MAX_PLAYERS: 10, // Maximum players per room
+  ROOM_INACTIVITY_TIMEOUT: 15 * 60 * 1000, // 15 minutes
+  CLEANUP_INTERVAL: 60 * 1000, // 1 minute
+};
 ```
 
-## Compile and run the project
+See `src/game/config/README.md` for detailed documentation.
 
-```bash
-# development
-$ npm run start
+## Project Structure
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+server/
+├── src/
+│   ├── game/
+│   │   ├── config/         # Game configuration
+│   │   ├── constants/      # Word lists (EN/ID)
+│   │   ├── interfaces/     # TypeScript interfaces
+│   │   ├── game.gateway.ts # WebSocket event handler
+│   │   ├── game.service.ts # Game logic
+│   │   └── game.module.ts
+│   ├── app.module.ts
+│   └── main.ts
+├── dist/                   # Compiled output
+└── package.json
 ```
 
-## Run tests
+## WebSocket Events
+
+### Client → Server
+
+- `createRoom`: Create a new room
+- `joinRoom`: Join an existing room
+- `reconnect`: Reconnect to a room
+- `startGame`: Start the game (host only)
+- `submitAnswer`: Submit an answer for current word
+- `nextRound`: Advance to next round (host only)
+- `playerReady`: Mark player as ready
+- `kickPlayer`: Kick a player (host only)
+- `leaveRoom`: Leave the room
+
+### Server → Client
+
+- `roomUpdate`: Room state changed
+- `gameStarted`: Game has started
+- `roundResult`: Round results available
+- `nextRound`: Moving to next round
+- `gameOver`: Game has ended
+- `reconnected`: Successfully reconnected
+- `playerKicked`: Player was kicked
+- `roomDestroyed`: Room was destroyed
+- `error`: Error occurred
+
+## Features
+
+- **Real-time Multiplayer**: Socket.io powered instant synchronization
+- **Persistent Player Identity**: UUIDs stored in localStorage
+- **Auto-reconnection**: Automatic state restoration on reconnect
+- **Inactivity Cleanup**: Automatic room cleanup after timeout
+- **Configurable Settings**: Easy customization via config file
+- **Bilingual Support**: Word lists for English and Indonesian
+
+## Tech Stack
+
+- **Framework**: NestJS
+- **WebSocket**: Socket.io
+- **Language**: TypeScript
+- **State Management**: In-memory (Map)
+
+## Development
 
 ```bash
-# unit tests
-$ npm run test
+# Watch mode with auto-reload
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
+# Build
+npm run build
 
-# test coverage
-$ npm run test:cov
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the [MIT License](../LICENSE).
+
+Copyright (c) 2025 Dimas Octa Maulana
