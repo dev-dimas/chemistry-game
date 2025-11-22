@@ -50,9 +50,11 @@ export const LandingPage: React.FC = () => {
 
       <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-md w-full flex flex-col gap-8 text-center border-8 border-blue-100 relative z-10">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center justify-center w-20 h-20 mb-2 transition-transform transform bg-blue-500 shadow-lg rounded-3xl rotate-3 hover:rotate-0">
-            <span className="text-5xl">🧪</span>
-          </div>
+          <img
+            src="/android-chrome-512x512.png"
+            alt="Chemistry Game Logo"
+            className="w-20 h-20"
+          />
           <h1 className="text-5xl font-black tracking-tight text-blue-600">
             {t.title}
           </h1>
