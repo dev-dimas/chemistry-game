@@ -118,7 +118,7 @@ REDIS_URL=redis://localhost:6379
 - **Scalable**: Redis support for horizontal scaling
 - **Health Monitoring**: Built-in health check endpoints
 - **Type-Safe**: Full TypeScript with DTOs and validation
-- **Well Tested**: 81% test coverage with 88 unit tests
+- **Well Tested**: 96% test coverage with 122 unit tests
 - **Clean Architecture**: Separation of concerns with modules
 
 ## ⚙️ Configuration
@@ -156,7 +156,7 @@ See `server/src/game/config/README.md` for detailed configuration documentation.
 - **Validation**: class-validator + class-transformer
 - **Health Checks**: @nestjs/terminus
 - **Persistence**: Redis (optional, with in-memory fallback)
-- **Testing**: Jest (81% coverage, 88 tests)
+- **Testing**: Jest (96% coverage, 122 tests)
 
 ## 📂 Project Structure
 
