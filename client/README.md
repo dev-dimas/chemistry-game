@@ -45,8 +45,10 @@ src/
 │   └── ...
 ├── pages/               # File-based routes (@generouted)
 │   ├── index.tsx        # / route
+│   ├── 404.tsx          # Global 404 page
 │   └── room/
-│       └── [roomId].tsx # /room/:roomId route
+│       ├── [roomId].tsx # /room/:roomId route
+        └── index.tsx    # Not found page
 ├── stores/              # Zustand state management
 │   ├── gameStore.ts     # Game state and socket logic
 │   ├── languageStore.ts # Language/i18n state
@@ -104,11 +106,12 @@ export const translations = {
     title: "Chemistry",
     createRoom: "Buat Room",
     // ...
-  }
+  },
 };
 ```
 
 Usage:
+
 ```typescript
 const { t, setLanguage } = useLanguageStore();
 
@@ -124,7 +127,7 @@ Socket.io client integrated in `gameStore.ts`:
 
 ```typescript
 // Initialize socket connection
-const initializeSocket = useGameStore(state => state.initializeSocket);
+const initializeSocket = useGameStore((state) => state.initializeSocket);
 
 useEffect(() => {
   initializeSocket(); // Connect on mount
@@ -133,24 +136,27 @@ useEffect(() => {
 // Use game actions
 const { createRoom, joinRoom, startGame } = useGameStore();
 
-createRoom('Alice', 'en'); // Create room
-joinRoom('ABCD', 'Bob');   // Join room
+createRoom("Alice", "en"); // Create room
+joinRoom("ABCD", "Bob"); // Join room
 ```
 
 ## 🧩 Key Features
 
 ### Room Joining Flow
+
 1. User visits `/room/ABCD`
 2. `checkRoom` event verifies room exists
 3. If exists: Show join form
 4. If not: Show error + redirect
 
 ### Automatic Reconnection
+
 - Player IDs stored in localStorage
 - Automatic reconnection on page refresh
 - State restored from server
 
 ### Loading States
+
 - Reconnection spinner
 - Room checking spinner
 - Button loading states
@@ -190,6 +196,7 @@ npm run build
 ```
 
 Current status:
+
 - ✅ Build: Passing
 - ✅ TypeScript: Strict mode
 - ✅ Lint: Passing
@@ -199,29 +206,34 @@ Current status:
 ### Core Components
 
 **GameContainer**: Main routing logic
+
 - Handles reconnection state
 - Routes to correct screen based on game state
 - Shows join page for room links
 
 **LandingPage**: Home screen
+
 - Create room
 - Join room with code
 - Language selection
 - How to play modal
 
 **JoinRoomPage**: Room joining
+
 - Validates room existence
 - Shows room code
 - Name input
 - Error handling
 
 **Lobby**: Waiting room
+
 - Player list
 - Start game (host only)
 - Invite link copy
 - Kick players (host only)
 
 **GameRoom**: Active game
+
 - Current word display
 - Answer input
 - Round results
@@ -231,6 +243,7 @@ Current status:
 ### UI Components
 
 **Button**: Reusable button with variants
+
 ```typescript
 <Button variant="primary" onClick={handleClick}>
   Click Me
@@ -238,6 +251,7 @@ Current status:
 ```
 
 **Input**: Form input with label
+
 ```typescript
 <Input
   label="Your Name"
@@ -248,10 +262,11 @@ Current status:
 ```
 
 **Alert**: Modal alert system
+
 ```typescript
 const { showAlert } = useAlertStore();
 
-showAlert('Room not found', 'Error');
+showAlert("Room not found", "Error");
 ```
 
 ## 🎮 Game Flow
@@ -291,6 +306,7 @@ VITE_API_URL=https://your-backend-domain.com
 ### Static Hosting
 
 Compatible with:
+
 - Vercel
 - Netlify
 - GitHub Pages
@@ -302,15 +318,15 @@ Compatible with:
 Make sure to configure your host for SPA routing:
 
 **Vercel** (`vercel.json`):
+
 ```json
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
 ```
 
 **Netlify** (`_redirects`):
+
 ```
 /*  /index.html  200
 ```
@@ -330,7 +346,6 @@ Make sure to configure your host for SPA routing:
 
 - [WebSocket API](../docs/api.md) - Complete API reference
 - [Game Specification](../docs/spec.md) - Game rules and design
-- [Room Join Flow](../ROOM_JOIN_FLOW.md) - Room sharing UX
 
 ## 🤝 Contributing
 
