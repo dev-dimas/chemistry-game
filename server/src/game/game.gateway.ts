@@ -9,54 +9,89 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  WsExceptionFilter,
+  AllExceptionsFilter,
+} from '../filters/ws-exception.filter';
+import {
+  CreateRoomDto,
+  JoinRoomDto,
+  ReconnectDto,
+  StartGameDto,
+  SubmitAnswerDto,
+  KickPlayerDto,
+  RoomActionDto,
+} from './dto';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // Allow all origins for now
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
   },
 })
+@UseFilters(new AllExceptionsFilter(), new WsExceptionFilter())
+@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly gameService: GameService) {}
+  private readonly logger = new Logger(GameGateway.name);
+
+  constructor(
+    private readonly gameService: GameService,
+    private readonly configService: ConfigService,
+  ) {}
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
-  handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-    const result = this.gameService.disconnectPlayer(client.id);
+  async handleDisconnect(client: Socket) {
+    this.logger.log(`Client disconnected: ${client.id}`);
+    const result = await this.gameService.disconnectPlayer(client.id);
     if (result) {
-      const { roomId, playerId } = result;
-      const room = this.gameService.getRoom(roomId);
+      const { roomId } = result;
+      const room = await this.gameService.getRoomPublic(roomId);
       if (room) {
-        // Emit room update so everyone sees updated connection status
         this.server.to(roomId).emit('roomUpdate', room);
       }
     }
   }
 
   @SubscribeMessage('createRoom')
-  createRoom(
-    @MessageBody() data: { playerName: string, language: 'en' | 'id', playerId?: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    const { room, player } = this.gameService.createRoom(data.playerName, client.id, data.language, data.playerId);
-    client.join(room.id);
-    return { room, player };
-  }
-
-  @SubscribeMessage('joinRoom')
-  joinRoom(
-    @MessageBody() data: { roomId: string; playerName: string, playerId?: string },
+  async createRoom(
+    @MessageBody() data: CreateRoomDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const { room, player } = this.gameService.joinRoom(data.roomId, data.playerName, client.id, data.playerId);
+      const { room, player } = await this.gameService.createRoom(
+        data.playerName,
+        client.id,
+        data.language,
+        data.playerId,
+      );
       client.join(room.id);
-      // Emit room update to all players
+      return { room, player };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  @SubscribeMessage('joinRoom')
+  async joinRoom(
+    @MessageBody() data: JoinRoomDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const { room, player } = await this.gameService.joinRoom(
+        data.roomId,
+        data.playerName,
+        client.id,
+        data.playerId,
+      );
+      client.join(room.id);
       this.server.to(room.id).emit('roomUpdate', room);
       return { room, player };
     } catch (error) {
@@ -65,136 +100,148 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('reconnect')
-  reconnect(
-    @MessageBody() data: { playerId: string },
+  async reconnect(
+    @MessageBody() data: ReconnectDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      // Removed roomId dependency, searching globally
-      const { room, player } = this.gameService.reconnectPlayer(data.playerId, client.id);
+      const { room, player } = await this.gameService.reconnectPlayer(
+        data.playerId,
+        client.id,
+      );
       client.join(room.id);
       client.emit('reconnected', { room, player });
-      // Emit room update to all players
       this.server.to(room.id).emit('roomUpdate', room);
     } catch (error) {
       return { error: error.message };
     }
   }
-  
+
   @SubscribeMessage('kickPlayer')
-  kickPlayer(
-      @MessageBody() data: { roomId: string; playerId: string; targetId: string },
-  ) {
-      try {
-          const { room, kickedPlayerId } = this.gameService.kickPlayer(data.roomId, data.playerId, data.targetId);
-          if (room) {
-              this.server.to(room.id).emit('roomUpdate', room);
-              this.server.to(room.id).emit('playerKicked', { playerId: kickedPlayerId });
-          }
-      } catch (error) {
-          return { error: error.message };
+  async kickPlayer(@MessageBody() data: KickPlayerDto) {
+    try {
+      const { room, kickedPlayerId } = await this.gameService.kickPlayer(
+        data.roomId,
+        data.playerId,
+        data.targetId,
+      );
+      if (room) {
+        this.server.to(room.id).emit('roomUpdate', room);
+        this.server
+          .to(room.id)
+          .emit('playerKicked', { playerId: kickedPlayerId });
       }
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 
   @SubscribeMessage('startGame')
-  startGame(
-    @MessageBody() data: { roomId: string; playerId: string },
-  ) {
+  async startGame(@MessageBody() data: StartGameDto) {
     try {
-      console.log(`Starting game for room ${data.roomId} requested by ${data.playerId}`);
-      const room = this.gameService.startGame(data.roomId, data.playerId);
+      this.logger.log(
+        `Starting game for room ${data.roomId} requested by ${data.playerId}`,
+      );
+      const room = await this.gameService.startGame(data.roomId, data.playerId);
       this.server.to(room.id).emit('gameStarted', room);
-      console.log(`Emitted gameStarted to room ${room.id}`);
+      this.logger.log(`Emitted gameStarted to room ${room.id}`);
     } catch (error) {
-      console.error(`Error starting game: ${error.message}`);
+      this.logger.error(`Error starting game: ${error.message}`);
       return { error: error.message };
     }
   }
 
   @SubscribeMessage('submitAnswer')
-  submitAnswer(
-    @MessageBody() data: { roomId: string; playerId: string; answer: string },
-  ) {
+  async submitAnswer(@MessageBody() data: SubmitAnswerDto) {
     try {
-      const { room, allAnswered } = this.gameService.submitAnswer(data.roomId, data.playerId, data.answer);
-      
-      // Emit room update so everyone sees the answer was submitted
+      const { room, allAnswered } = await this.gameService.submitAnswer(
+        data.roomId,
+        data.playerId,
+        data.answer,
+      );
+
       this.server.to(room.id).emit('roomUpdate', room);
-      console.log(`Answer submitted by ${data.playerId}, room updated`);
+      this.logger.log(`Answer submitted by ${data.playerId}, room updated`);
 
       if (allAnswered) {
-        // Calculate results
-        const result = this.gameService.calculateRoundResults(room.id);
-        // Emit with consistent field name 'isMatch' instead of 'match'
-        this.server.to(room.id).emit('roundResult', { 
-          room: result.room, 
-          isMatch: result.match, 
-          word: result.word 
+        const result = await this.gameService.calculateRoundResults(room.id);
+        this.server.to(room.id).emit('roundResult', {
+          room: result.room,
+          isMatch: result.match,
+          word: result.word,
         });
-        console.log(`Round results emitted for room ${room.id}, match: ${result.match}`);
-        
-        // No longer auto-advancing. Waiting for 'nextRound' event.
+        this.logger.log(
+          `Round results emitted for room ${room.id}, match: ${result.match}`,
+        );
       }
     } catch (error) {
       return { error: error.message };
     }
   }
-  
-  @SubscribeMessage('nextRound')
-  nextRound(@MessageBody() data: { roomId: string; playerId: string }) {
-      try {
-           // Validate creator
-           const room = this.gameService.getRoom(data.roomId);
-           if (!room) return;
-           const player = room.players.find(p => p.id === data.playerId);
-           if (!player || !player.isCreator) {
-               return { error: "Only creator can advance round" };
-           }
 
-           const next = this.gameService.nextRound(data.roomId);
-           if (next.gameOver) {
-             this.server.to(data.roomId).emit('gameOver', next.room);
-           } else {
-             this.server.to(data.roomId).emit('nextRound', next.room);
-           }
-      } catch (error) {
-          return { error: error.message };
+  @SubscribeMessage('nextRound')
+  async nextRound(@MessageBody() data: RoomActionDto) {
+    try {
+      const room = await this.gameService.getRoomPublic(data.roomId);
+      if (!room) return { error: 'Room not found' };
+
+      const player = room.players.find((p) => p.id === data.playerId);
+      if (!player || !player.isCreator) {
+        return { error: 'Only creator can advance round' };
       }
+
+      const next = await this.gameService.nextRound(data.roomId);
+      if (next.gameOver) {
+        this.server.to(data.roomId).emit('gameOver', next.room);
+      } else {
+        this.server.to(data.roomId).emit('nextRound', next.room);
+      }
+    } catch (error) {
+      return { error: error.message };
+    }
   }
-  
+
   @SubscribeMessage('leaveRoom')
-  leaveRoom(
-      @MessageBody() data: { roomId: string; playerId: string },
-      @ConnectedSocket() client: Socket,
+  async leaveRoom(
+    @MessageBody() data: RoomActionDto,
+    @ConnectedSocket() client: Socket,
   ) {
-      try {
-          const { room, destroyed } = this.gameService.leaveRoom(data.roomId, data.playerId);
-          client.leave(data.roomId);
-          
-          if (destroyed) {
-              this.server.to(data.roomId).emit('roomDestroyed');
-              // Make everyone leave?
-              this.server.in(data.roomId).disconnectSockets();
-          } else if (room) {
-              this.server.to(room.id).emit('roomUpdate', room);
-              // Also emit to the one who left? No, they left.
-          }
-      } catch (error) {
-          return { error: error.message };
+    try {
+      const { room, destroyed } = await this.gameService.leaveRoom(
+        data.roomId,
+        data.playerId,
+      );
+      client.leave(data.roomId);
+
+      if (destroyed) {
+        this.server.to(data.roomId).emit('roomDestroyed');
+        this.server.in(data.roomId).disconnectSockets();
+      } else if (room) {
+        this.server.to(room.id).emit('roomUpdate', room);
       }
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 
   @SubscribeMessage('playerReady')
-  playerReady(
-      @MessageBody() data: { roomId: string; playerId: string },
-  ) {
-      try {
-          let room = this.gameService.playerReady(data.roomId, data.playerId);
-          // Check if everyone is ready to switch to LOBBY state
-          room = this.gameService.checkAndSwitchToLobby(data.roomId);
-          this.server.to(room.id).emit('roomUpdate', room);
-      } catch (error) {
-          return { error: error.message };
-      }
+  async playerReady(@MessageBody() data: RoomActionDto) {
+    try {
+      let room = await this.gameService.playerReady(data.roomId, data.playerId);
+      room = await this.gameService.checkAndSwitchToLobby(data.roomId);
+      this.server.to(room.id).emit('roomUpdate', room);
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  @SubscribeMessage('checkRoom')
+  async checkRoom(@MessageBody() data: { roomId: string }) {
+    try {
+      const room = await this.gameService.getRoomPublic(data.roomId);
+      return { exists: room !== null };
+    } catch (error) {
+      return { exists: false };
+    }
   }
 }
