@@ -27,7 +27,12 @@ import {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      const configService = new ConfigService();
+      const allowedOrigin =
+        configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
+      callback(null, allowedOrigin);
+    },
     credentials: true,
   },
 })
