@@ -193,8 +193,10 @@ chemistry-game/
 │   │   │   └── Lobby.tsx
 │   │   ├── pages/            # File-based routes (@generouted)
 │   │   │   ├── index.tsx     # / route
+│   │   │   ├── 404.tsx       # Global 404 page
 │   │   │   └── room/
-│   │   │       └── [roomId].tsx  # /room/:roomId route
+│   │   │       ├── [roomId].tsx  # /room/:roomId route
+│   │   │       └── index.tsx    # Not found page
 │   │   ├── stores/           # Zustand state management
 │   │   │   ├── gameStore.ts
 │   │   │   ├── languageStore.ts
@@ -206,8 +208,6 @@ chemistry-game/
 ├── docs/                      # Documentation
 │   ├── api.md                # WebSocket API reference
 │   └── spec.md               # Game specification
-├── ROOM_JOIN_FLOW.md         # Room join flow documentation
-├── server/IMPROVEMENTS.md    # Server improvements summary
 └── README.md
 ```
 
