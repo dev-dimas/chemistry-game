@@ -1,16 +1,16 @@
+import { useAlertStore } from "@/stores/alertStore";
+import { useGameStore } from "@/stores/gameStore";
+import { useLanguageStore } from "@/stores/languageStore";
 import React, { useState } from "react";
-import { useGame } from "../context/GameContext";
-import { useLanguage } from "../context/LanguageContext";
-import { useAlert } from "../context/AlertContext";
-import { Button } from "../components/Button";
-import { Input } from "../components/Input";
-import { HowToPlayModal } from "../components/HowToPlayModal";
-import { FlaskIcon, AtomIcon, ChemistryIcon } from "../components/Icons";
+import { BackgroundPattern } from "./BackgroundPattern";
+import { Button } from "./Button";
+import { HowToPlayModal } from "./HowToPlayModal";
+import { Input } from "./Input";
 
-export const LandingPage: React.FC = () => {
-  const { createRoom, joinRoom } = useGame();
-  const { t, language, setLanguage } = useLanguage();
-  const { showAlert } = useAlert();
+const LandingPage: React.FC = () => {
+  const { createRoom, joinRoom } = useGameStore();
+  const { t, language, setLanguage } = useLanguageStore();
+  const { showAlert } = useAlertStore();
   const [name, setName] = useState("");
   const [roomIdToJoin, setRoomIdToJoin] = useState("");
   const [showRules, setShowRules] = useState(false);
@@ -36,17 +36,9 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden bg-blue-50">
-      {/* Background Blobs */}
-      <div className="absolute top-10 left-10 text-blue-200 opacity-50 animate-bounce duration-[3000ms]">
-        <FlaskIcon className="w-24 h-24" />
-      </div>
-      <div className="absolute bottom-10 right-10 text-yellow-200 opacity-50 animate-pulse duration-[4000ms]">
-        <AtomIcon className="w-32 h-32" />
-      </div>
-      <div className="absolute text-green-200 rotate-45 top-20 right-20 opacity-30">
-        <ChemistryIcon className="w-20 h-20" />
-      </div>
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden bg-indigo-900">
+      {/* Abstract Background Pattern */}
+      <BackgroundPattern />
 
       <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-md w-full flex flex-col gap-8 text-center border-8 border-blue-100 relative z-10">
         <div className="flex flex-col items-center gap-2">
@@ -60,26 +52,26 @@ export const LandingPage: React.FC = () => {
           </h1>
           <p className="text-lg font-medium text-gray-400">{t.subtitle}</p>
           {/* Language Toggle */}
-          <div className="flex justify-center w-full gap-2 bg-white rounded-full shadow-sm top-4 right-4">
+          <div className="inline-flex p-1 bg-gray-100 rounded-lg">
             <button
               onClick={() => setLanguage("en")}
-              className={`px-3 py-1 rounded-full text-sm font-bold transition-colors ${
+              className={`px-6 py-2 text-sm font-semibold transition-all duration-200 rounded-md ${
                 language === "en"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-400 hover:bg-gray-100"
+                  ? "bg-white text-blue-600 shadow-md"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              EN
+              English
             </button>
             <button
               onClick={() => setLanguage("id")}
-              className={`px-3 py-1 rounded-full text-sm font-bold transition-colors ${
+              className={`px-6 py-2 text-sm font-semibold transition-all duration-200 rounded-md ${
                 language === "id"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-400 hover:bg-gray-100"
+                  ? "bg-white text-blue-600 shadow-md"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              ID
+              Indonesia
             </button>
           </div>
         </div>
@@ -119,7 +111,7 @@ export const LandingPage: React.FC = () => {
               value={roomIdToJoin}
               onChange={(e) => setRoomIdToJoin(e.target.value.toUpperCase())}
               maxLength={4}
-              className="tracking-widest text-center uppercase"
+              className="tracking-wide text-center uppercase"
             />
             <Button variant="secondary" onClick={handleJoin}>
               {t.join}
@@ -139,3 +131,5 @@ export const LandingPage: React.FC = () => {
     </div>
   );
 };
+
+export default LandingPage;

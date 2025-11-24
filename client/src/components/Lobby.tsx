@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { useGame } from "../context/GameContext";
-import { useLanguage } from "../context/LanguageContext";
-import { Button } from "../components/Button";
-import { Toast } from "../components/Toast";
-import { useNavigate } from "react-router-dom";
+import { useGameStore } from "@/stores/gameStore";
+import { useLanguageStore } from "@/stores/languageStore";
+import { useNavigate } from "@/router";
+import { Button } from "./Button";
+import { Toast } from "./Toast";
+import { BackgroundPattern } from "./BackgroundPattern";
 
 export const Lobby: React.FC = () => {
-  const { room, player, startGame, kickPlayer, leaveRoom } = useGame();
-  const { t } = useLanguage();
+  const { room, player, startGame, kickPlayer, leaveRoom } = useGameStore();
+  const { t } = useLanguageStore();
   const [showToast, setShowToast] = useState(false);
   const navigate = useNavigate();
 
@@ -19,19 +20,14 @@ export const Lobby: React.FC = () => {
     setShowToast(true);
   };
 
-  // If room is in ENDED state, we show a "Post-Game Lobby" view
   if (room.state === "ENDED") {
-    // If *I* haven't marked myself as ready, I shouldn't be seeing this component ideally?
-    // Wait, my logic was: ENDED + isReady -> Lobby.
-    // If I am isReady, I see this.
-    // I should see who else is ready.
-
     const readyPlayers = room.players.filter((p) => p.isReady);
     const busyPlayers = room.players.filter((p) => !p.isReady);
 
     return (
-      <div className="flex flex-col items-center min-h-screen p-4 pt-12 bg-indigo-900">
-        <div className="bg-white p-6 rounded-[32px] shadow-xl max-w-2xl w-full flex flex-col gap-6 border-b-8 border-indigo-200">
+      <div className="relative flex flex-col items-center min-h-screen p-4 pt-12 overflow-hidden bg-indigo-900">
+        <BackgroundPattern />
+        <div className="relative z-10 bg-white p-6 rounded-[32px] shadow-xl max-w-2xl w-full flex flex-col gap-6 border-b-8 border-indigo-200">
           <h2 className="text-3xl font-black text-center text-indigo-800">
             {t.lobby} ({room.id})
           </h2>
@@ -97,7 +93,14 @@ export const Lobby: React.FC = () => {
             </Button>
           )}
 
-          <Button variant="danger" onClick={leaveRoom} className="w-full">
+          <Button
+            variant="danger"
+            onClick={() => {
+              leaveRoom();
+              navigate("/");
+            }}
+            className="w-full"
+          >
             {t.leaveRoom}
           </Button>
         </div>
@@ -106,8 +109,9 @@ export const Lobby: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-4 pt-12 bg-indigo-900">
-      <div className="bg-white p-6 rounded-[32px] shadow-xl max-w-2xl w-full flex flex-col gap-6 border-b-8 border-indigo-200">
+    <div className="relative flex flex-col items-center min-h-screen p-4 pt-12 overflow-hidden bg-indigo-900">
+      <BackgroundPattern />
+      <div className="relative z-10 bg-white p-6 rounded-[32px] shadow-xl max-w-2xl w-full flex flex-col gap-6 border-b-8 border-indigo-200">
         <div className="flex items-center justify-between pb-4 border-b-2 border-gray-100">
           <div>
             <h2 className="text-3xl font-black tracking-tight text-indigo-800">

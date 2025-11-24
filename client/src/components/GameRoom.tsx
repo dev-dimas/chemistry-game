@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { useGame } from "../context/GameContext";
-import { useLanguage } from "../context/LanguageContext";
-import { Button } from "../components/Button";
-import { Input } from "../components/Input";
+import { useGameStore } from "@/stores/gameStore";
+import { useLanguageStore } from "@/stores/languageStore";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import { BackgroundPattern } from "./BackgroundPattern";
 
 export const GameRoom: React.FC = () => {
-  const { room, player, submitAnswer, returnToLobby, nextRound } = useGame();
-  const { t } = useLanguage();
+  const { room, player, submitAnswer, returnToLobby, nextRound } =
+    useGameStore();
+  const { t } = useLanguageStore();
   const [answer, setAnswer] = useState("");
 
   if (!room || !player) return null;
@@ -22,23 +24,13 @@ export const GameRoom: React.FC = () => {
   const handleSubmit = () => {
     if (answer.trim()) {
       submitAnswer(answer);
-      setAnswer(""); // Clear for next round locally, though component might remount
+      setAnswer("");
     }
   };
 
-  // Determine Game Over Message
   const getGameOverMessage = () => {
-    // Calculate average match rate or total score
-    // Total possible score per player = total rounds
-    // Chemistry % = (Total Score / Total Rounds) * 100
-
-    // Let's calculate Chemistry % based on group success
-    // A "Chemistry Match" happens if everyone has the same answer.
-    // If match -> +1 score for everyone.
-    // Since everyone gets points together, any player's score is the "Team Score".
-
     const maxScore = room.players[0]?.score || 0;
-    const totalRounds = room.words.length; // Use actual number of rounds from game
+    const totalRounds = room.words.length;
     const percent = Math.round((maxScore / totalRounds) * 100);
 
     if (percent === 100)
@@ -70,8 +62,12 @@ export const GameRoom: React.FC = () => {
     const { msg, sub, emoji } = getGameOverMessage();
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-neutral-200">
-        <div className="bg-white p-8 rounded-[32px] shadow-xl max-w-lg w-full text-center border-8 border-blue-100 relative overflow-hidden animate-fade-in">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden bg-neutral-200">
+        <BackgroundPattern
+          iconClassName="text-gray-500"
+          opacity="opacity-[0.05]"
+        />
+        <div className="relative z-10 bg-white p-8 rounded-[32px] shadow-xl max-w-lg w-full text-center border-8 border-blue-100 overflow-hidden animate-fade-in">
           <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"></div>
 
           <div className="mt-4 mb-6">
@@ -87,7 +83,10 @@ export const GameRoom: React.FC = () => {
               {t.chemistryScore}
             </span>
             <span className="block text-6xl font-black text-blue-600">
-              {Math.round(((room.players[0]?.score || 0) / room.words.length) * 100)}%
+              {Math.round(
+                ((room.players[0]?.score || 0) / room.words.length) * 100
+              )}
+              %
             </span>
           </div>
 
@@ -136,17 +135,12 @@ export const GameRoom: React.FC = () => {
   }
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen px-4 pb-4 bg-neutral-200">
-      {/* Subtle Background Pattern */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      ></div>
+    <div className="relative flex flex-col items-center min-h-screen px-4 pb-4 overflow-hidden bg-neutral-200">
+      <BackgroundPattern
+        iconClassName="text-gray-500"
+        opacity="opacity-[0.05]"
+      />
 
-      {/* Header / Scoreboard */}
       <div className="w-full max-w-4xl bg-white rounded-b-[32px] shadow-sm p-4 mb-8 flex justify-between overflow-x-auto gap-4 border-b-4 border-blue-100 no-scrollbar z-10">
         {room.players.map((p) => (
           <div
@@ -192,7 +186,6 @@ export const GameRoom: React.FC = () => {
               </div>
             ) : player.isCreator ||
               !room.spectators.find((s) => s.id === player.id) ? (
-              // Player Input
               <div className="flex flex-col gap-6">
                 <Input
                   autoFocus
@@ -206,7 +199,6 @@ export const GameRoom: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              // Spectator View
               <div className="py-8 text-center">
                 <div className="mb-6 text-6xl">👀</div>
                 <p className="text-lg font-bold text-gray-400">
@@ -216,7 +208,6 @@ export const GameRoom: React.FC = () => {
             )}
           </div>
         ) : (
-          // Results View
           <div className="w-full animate-fade-in">
             <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2">
               {room.players.map((p) => (
@@ -232,7 +223,6 @@ export const GameRoom: React.FC = () => {
               ))}
             </div>
 
-            {/* Match Indicator */}
             {(() => {
               const answers = Object.values(room.currentAnswers).map((a) =>
                 a.trim().toLowerCase()
@@ -253,7 +243,6 @@ export const GameRoom: React.FC = () => {
               );
             })()}
 
-            {/* Next Round Button (only show if not last round) */}
             {room.currentWordIndex < room.words.length - 1 && (
               <div className="flex justify-center mt-12">
                 {player.isCreator ? (
@@ -271,8 +260,7 @@ export const GameRoom: React.FC = () => {
                 )}
               </div>
             )}
-            
-            {/* Final round indicator - will auto-advance */}
+
             {room.currentWordIndex === room.words.length - 1 && (
               <div className="flex justify-center mt-12">
                 <div className="flex flex-col items-center gap-2 animate-pulse">

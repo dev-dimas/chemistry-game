@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguageStore } from '../stores/languageStore';
 import { Button } from './Button';
 
 interface HowToPlayModalProps {
@@ -8,7 +8,7 @@ interface HowToPlayModalProps {
 }
 
 export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
-  const { t } = useLanguage();
+  const { t } = useLanguageStore();
   
   if (!isOpen) return null;
 

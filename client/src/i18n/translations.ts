@@ -71,11 +71,15 @@ export const translations = {
     // Errors/Status
     enterName: "Please enter your name",
     enterRoomId: "Please enter room ID",
+    joinRoom: "Join Room",
+    roomNotFound: "Room Not Found",
+    roomNotFoundDesc: "This room doesn't exist or has been closed.",
+    backToHome: "Back to Home",
   },
   id: {
     // General
     title: "Chemistry",
-    subtitle: "Game telepati untuk dimainkan bersama!",
+    subtitle: "Game telepati bersama!",
     loading: "Memuat...",
     error: "Error",
 
@@ -143,5 +147,9 @@ export const translations = {
     // Errors/Status
     enterName: "Masukkan nama dulu ya",
     enterRoomId: "Masukkan ID Room",
+    joinRoom: "Gabung Room",
+    roomNotFound: "Room Tidak Ditemukan",
+    roomNotFoundDesc: "Room ini tidak ada atau sudah ditutup.",
+    backToHome: "Kembali ke Beranda",
   },
 };

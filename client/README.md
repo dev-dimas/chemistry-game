@@ -1,236 +1,352 @@
 # Chemistry Game - Client
 
-React frontend client for the Multiplayer Chemistry Game.
+React frontend for the Chemistry Game multiplayer application.
 
-## Overview
-
-This is the frontend client built with React, TypeScript, and Tailwind CSS that provides:
-
-- Interactive game interface
-- Real-time multiplayer synchronization
-- Bilingual support (English/Indonesian)
-- Custom alert UI
-- Responsive design for desktop and mobile
-
-## Setup
-
-1. **Install dependencies**:
-
-   ```bash
-   npm install
-   ```
-
-2. **Run in development mode**:
-
-   ```bash
-   npm run dev
-   ```
-
-3. **Build for production**:
-
-   ```bash
-   npm run build
-   ```
-
-4. **Preview production build**:
-   ```bash
-   npm run preview
-   ```
-
-The client will run on `http://localhost:5173` by default.
-
-## Project Structure
-
-```
-client/
-├── src/
-│   ├── components/      # Reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Input.tsx
-│   │   ├── Toast.tsx
-│   │   ├── HowToPlayModal.tsx
-│   │   └── Icons.tsx
-│   ├── context/         # React Context providers
-│   │   ├── GameContext.tsx      # Game state & Socket.io
-│   │   ├── LanguageContext.tsx  # Translation system
-│   │   └── AlertContext.tsx     # Custom alerts
-│   ├── i18n/            # Translation files
-│   │   └── translations.ts
-│   ├── pages/           # Page components
-│   │   ├── LandingPage.tsx
-│   │   ├── JoinRoomPage.tsx
-│   │   ├── Lobby.tsx
-│   │   └── GameRoom.tsx
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── public/
-└── package.json
-```
-
-## Configuration
-
-### Environment Variables
-
-Client settings can be configured in `.env` file:
-
-- `VITE_API_URL`: Backend API URL (default: http://localhost:3000)
-- `VITE_APP_NAME`: Application name (default: Chemistry Game)
-
-Example `.env` file:
-```env
-VITE_API_URL=http://localhost:3000
-VITE_APP_NAME=Chemistry Game
-```
-
-**Note**: In Vite, environment variables must be prefixed with `VITE_` to be exposed to the client code.
-
-### Adding New Environment Variables
-
-1. Add the variable to `.env` and `.env.example` with `VITE_` prefix
-2. Add TypeScript type in `src/env.d.ts`:
-   ```typescript
-   interface ImportMetaEnv {
-     readonly VITE_YOUR_VAR: string;
-   }
-   ```
-3. Access in code: `import.meta.env.VITE_YOUR_VAR`
-
-## Features
-
-- **Bilingual Support**: Full English and Indonesian translations
-- **Real-time Updates**: Instant synchronization with Socket.io
-- **Custom Alert UI**: Beautiful modal alerts instead of browser popups
-- **Responsive Design**: Works on desktop and mobile devices
-- **Persistent Identity**: Player ID stored in localStorage
-- **Auto-reconnection**: Reconnects automatically if connection drops
-- **State Synchronization**: Player state syncs with room updates
-
-## Language Support
-
-The app supports two languages:
-
-- **English (EN)**
-- **Indonesian (ID)**
-
-Language is set by the room creator on the landing page and synchronized across all players.
-
-### Adding New Translations
-
-1. Open `src/i18n/translations.ts`
-2. Add new keys to both `en` and `id` objects:
-
-```typescript
-export const translations = {
-  en: {
-    newKey: "English text",
-    // ...
-  },
-  id: {
-    newKey: "Teks Indonesia",
-    // ...
-  },
-};
-```
-
-3. Use in components:
-
-```typescript
-const { t } = useLanguage();
-return <div>{t.newKey}</div>;
-```
-
-## State Management
-
-The app uses React Context API for state management:
-
-### GameContext
-
-- Manages Socket.io connection
-- Handles game state (room, player, etc.)
-- Provides game actions (createRoom, joinRoom, etc.)
-
-### LanguageContext
-
-- Manages language selection
-- Provides translation function `t`
-- Syncs language with room settings
-
-### AlertContext
-
-- Provides custom alert UI
-- Replaces browser `alert()` calls
-- Supports title and message customization
-
-## Components
-
-### Button
-
-Reusable button component with variants:
-
-- `primary` (default)
-- `secondary`
-- `danger`
-
-### Input
-
-Reusable input field with label support.
-
-### Toast
-
-Toast notification for temporary messages.
-
-### HowToPlayModal
-
-Modal displaying game rules and instructions.
-
-## Tech Stack
-
-- **Framework**: React + Vite
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **WebSocket**: Socket.io-client
-- **Routing**: React Router
-- **State**: React Context API
-
-## Development
+## 🚀 Quick Start
 
 ```bash
-# Development server with hot reload
-npm run dev
+# Install dependencies
+npm install
 
-# Type checking
-npm run type-check
+# Setup environment
+cp .env.example .env
+
+# Run development server
+npm run dev
 
 # Build for production
 npm run build
-
-# Preview production build
 npm run preview
-
-# Lint code
-npm run lint
 ```
 
-## Connecting to Different Backend
+## 📋 Environment Variables
 
-To connect to a different backend server (e.g., production), update the `VITE_API_URL` in your `.env` file:
+Create a `.env` file in the client directory:
 
-```env
-# For production
-VITE_API_URL=https://your-production-api.com
-
-# For local development
+```bash
+# Backend API URL
 VITE_API_URL=http://localhost:3000
-
-# For different port
-VITE_API_URL=http://localhost:8080
 ```
 
-The app will automatically connect to the specified backend URL.
+## 🏗️ Architecture
 
-## License
+### Folder Structure
 
-This project is licensed under the [MIT License](../LICENSE).
+```
+src/
+├── components/           # React components
+│   ├── Alert.tsx        # Alert modal component
+│   ├── Button.tsx       # Reusable button component
+│   ├── GameContainer.tsx # Main game container
+│   ├── GameRoom.tsx     # Active game screen
+│   ├── JoinRoomPage.tsx # Room joining page
+│   ├── LandingPage.tsx  # Home page
+│   ├── Lobby.tsx        # Waiting room
+│   └── ...
+├── pages/               # File-based routes (@generouted)
+│   ├── index.tsx        # / route
+│   └── room/
+│       └── [roomId].tsx # /room/:roomId route
+├── stores/              # Zustand state management
+│   ├── gameStore.ts     # Game state and socket logic
+│   ├── languageStore.ts # Language/i18n state
+│   └── alertStore.ts    # Alert modal state
+├── i18n/                # Internationalization
+│   └── translations.ts  # EN/ID translations
+├── router.ts            # Generated routes (auto)
+└── App.tsx              # Root component
+```
 
-Copyright (c) 2025 Dimas Octa Maulana
+### State Management
+
+Uses **Zustand** for simple, scalable state management:
+
+```typescript
+// Game Store
+const { room, player, createRoom, joinRoom } = useGameStore();
+
+// Language Store
+const { t, language, setLanguage } = useLanguageStore();
+
+// Alert Store
+const { showAlert, closeAlert } = useAlertStore();
+```
+
+### Routing
+
+Uses **@generouted/react-router** for file-based routing:
+
+- `pages/index.tsx` → `/`
+- `pages/room/[roomId].tsx` → `/room/:roomId`
+
+Routes are automatically generated based on file structure.
+
+## 🎨 Styling
+
+- **Tailwind CSS 3**: Utility-first CSS framework
+- **Custom Components**: Reusable UI components with consistent styling
+- **Responsive Design**: Mobile-friendly layouts
+- **Dark Theme**: Indigo color scheme
+
+## 🌐 Internationalization
+
+Supports English (EN) and Indonesian (ID):
+
+```typescript
+// translations.ts
+export const translations = {
+  en: {
+    title: "Chemistry",
+    createRoom: "Create Room",
+    // ...
+  },
+  id: {
+    title: "Chemistry",
+    createRoom: "Buat Room",
+    // ...
+  }
+};
+```
+
+Usage:
+```typescript
+const { t, setLanguage } = useLanguageStore();
+
+<h1>{t.title}</h1>
+<button onClick={() => setLanguage('id')}>
+  Switch to Indonesian
+</button>
+```
+
+## 🔌 WebSocket Integration
+
+Socket.io client integrated in `gameStore.ts`:
+
+```typescript
+// Initialize socket connection
+const initializeSocket = useGameStore(state => state.initializeSocket);
+
+useEffect(() => {
+  initializeSocket(); // Connect on mount
+}, []);
+
+// Use game actions
+const { createRoom, joinRoom, startGame } = useGameStore();
+
+createRoom('Alice', 'en'); // Create room
+joinRoom('ABCD', 'Bob');   // Join room
+```
+
+## 🧩 Key Features
+
+### Room Joining Flow
+1. User visits `/room/ABCD`
+2. `checkRoom` event verifies room exists
+3. If exists: Show join form
+4. If not: Show error + redirect
+
+### Automatic Reconnection
+- Player IDs stored in localStorage
+- Automatic reconnection on page refresh
+- State restored from server
+
+### Loading States
+- Reconnection spinner
+- Room checking spinner
+- Button loading states
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+npm run dev        # Start dev server (port 5173)
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm run lint       # Lint and auto-fix with ESLint
+```
+
+### Code Quality
+
+```bash
+# Lint check
+npm run lint
+
+# Build check
+npm run build
+```
+
+Current status:
+- ✅ Build: Passing
+- ✅ TypeScript: Strict mode
+- ✅ Lint: Passing
+
+## 📱 Components
+
+### Core Components
+
+**GameContainer**: Main routing logic
+- Handles reconnection state
+- Routes to correct screen based on game state
+- Shows join page for room links
+
+**LandingPage**: Home screen
+- Create room
+- Join room with code
+- Language selection
+- How to play modal
+
+**JoinRoomPage**: Room joining
+- Validates room existence
+- Shows room code
+- Name input
+- Error handling
+
+**Lobby**: Waiting room
+- Player list
+- Start game (host only)
+- Invite link copy
+- Kick players (host only)
+
+**GameRoom**: Active game
+- Current word display
+- Answer input
+- Round results
+- Score display
+- Next round button (host only)
+
+### UI Components
+
+**Button**: Reusable button with variants
+```typescript
+<Button variant="primary" onClick={handleClick}>
+  Click Me
+</Button>
+```
+
+**Input**: Form input with label
+```typescript
+<Input
+  label="Your Name"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  maxLength={12}
+/>
+```
+
+**Alert**: Modal alert system
+```typescript
+const { showAlert } = useAlertStore();
+
+showAlert('Room not found', 'Error');
+```
+
+## 🎮 Game Flow
+
+```
+Landing Page
+    ↓
+Create Room / Join Room / Visit Link
+    ↓
+Lobby (Wait for players)
+    ↓
+Game Room (Play rounds)
+    ↓
+Game Over (Show results)
+    ↓
+Back to Lobby
+```
+
+## 🚢 Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+Output: `dist/` directory
+
+### Environment Variables
+
+Production `.env`:
+
+```bash
+VITE_API_URL=https://your-backend-domain.com
+```
+
+### Static Hosting
+
+Compatible with:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+- Any static hosting service
+
+### SPA Configuration
+
+Make sure to configure your host for SPA routing:
+
+**Vercel** (`vercel.json`):
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
+```
+
+**Netlify** (`_redirects`):
+```
+/*  /index.html  200
+```
+
+## 🛠️ Technologies
+
+- **React 19**: Latest React with concurrent features
+- **TypeScript**: Type-safe development
+- **Vite 7**: Fast build tool and dev server
+- **Tailwind CSS 3**: Utility-first styling
+- **Zustand**: Lightweight state management
+- **@generouted/react-router**: File-based routing
+- **Socket.io-client 4**: Real-time WebSocket
+- **class-validator**: Client-side validation
+
+## 📚 Additional Documentation
+
+- [WebSocket API](../docs/api.md) - Complete API reference
+- [Game Specification](../docs/spec.md) - Game rules and design
+- [Room Join Flow](../ROOM_JOIN_FLOW.md) - Room sharing UX
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Ensure build passes: `npm run build`
+4. Ensure linting passes: `npm run lint`
+5. Submit a pull request
+
+## 📝 License
+
+MIT License - see [LICENSE](../LICENSE) file for details.
+
+---
+
+**Status**: Production Ready ✅  
+**Build**: Passing  
+**Lint**: Passing  
+**Framework**: React 19 + Vite 7
