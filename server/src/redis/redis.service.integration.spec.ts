@@ -4,6 +4,8 @@ import { RedisService } from './redis.service';
 import { Room, GameState } from '../game/interfaces/game.interfaces';
 import Redis from 'ioredis';
 
+jest.mock('ioredis');
+
 describe('RedisService Integration', () => {
   let service: RedisService;
 
@@ -42,7 +44,7 @@ describe('RedisService Integration', () => {
         quit: jest.fn().mockResolvedValue(undefined),
       };
 
-      jest.spyOn(Redis.prototype, 'constructor' as any).mockImplementation(() => mockRedisClient);
+      (Redis as unknown as jest.Mock).mockImplementation(() => mockRedisClient);
 
       const module: TestingModule = await Test.createTestingModule({
         providers: [
